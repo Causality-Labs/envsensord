@@ -23,8 +23,5 @@ RUN chmod +x /app/client.py
 
 RUN make clean && make all
 
-# # Expose the port
-# EXPOSE 3500
-
 # Run the server (not the test script)
 CMD ["./bin/server"]

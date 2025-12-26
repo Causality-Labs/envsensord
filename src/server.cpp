@@ -6,7 +6,7 @@
 int main (void)
 {
     Server server;
-    SysLogger logger("HW_Server");
+    StdLogger logger("HW_Server");
     int ret{};
     int client_fd{};
 

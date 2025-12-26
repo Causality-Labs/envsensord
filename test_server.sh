@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "Starting server..."
-./bin/server &
-SERVER_PID=$!
-sleep 1
-
 echo ""
 echo "Running C++ clients..."
 for i in {1..3}; do

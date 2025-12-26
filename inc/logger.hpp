@@ -3,6 +3,9 @@
 
 #include <syslog.h>
 #include <string>
+#include <iostream>
+#include <chrono>
+#include <iomanip>
 
 class SysLogger {
     private:
@@ -24,6 +27,26 @@ class SysLogger {
         
         void error(const std::string& message) {
             syslog(LOG_ERR, "%s", message.c_str());
+        }
+};
+
+class StdLogger {
+    private:
+        std::string logger_name;
+
+    public:
+        StdLogger(const std::string& name) : logger_name(name) {
+        }
+        
+        ~StdLogger() {
+        }
+        
+        void info(const std::string& message) {
+            std::cout << "[" << logger_name << "] [INFO] " << message << std::endl;
+        }
+        
+        void error(const std::string& message) {
+            std::cerr << "[" << logger_name << "] [ERROR] " << message << std::endl;
         }
 };
 

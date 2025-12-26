@@ -1,27 +1,29 @@
 #include <iostream>
 #include <string>
 #include "my_socket_lib.hpp"
+#include "logger.hpp"
 
 int main()
 {
     // Create client with server hostname and port
     Client client("localhost");
-    
+    StdLogger logger("HW_Client");
+
     // Connect to server
-    std::cout << "Connecting to server..." << std::endl;
+    logger.info("Connecting to server...");
     if (client.connect_to_server(3500) < 0) {
-        std::cerr << "Failed to connect to server" << std::endl;
+        logger.error("Failed to connect to server");
         return 1;
     }
     
-    std::cout << "Connected to server!" << std::endl;
+    logger.info("Connected to server!");
     
     // Send message to server
     std::string message = "Hello from C++ client!";
-    std::cout << "Sending: " << message << std::endl;
+    logger.info("Sending: " + message);
     
     if (client.send_data(message) < 0) {
-        std::cerr << "Failed to send data" << std::endl;
+        logger.error("Failed to send data");
         client.disconnect();
         return 1;
     }
@@ -31,16 +33,16 @@ int main()
     int bytes = client.receive_data(response);
     
     if (bytes > 0) {
-        std::cout << "Server response: " << response << std::endl;
+        logger.info("Server response: " + response);
     } else if (bytes == 0) {
-        std::cout << "Server closed connection" << std::endl;
+        logger.info("Server closed connection");
     } else {
-        std::cerr << "Failed to receive data" << std::endl;
+        logger.error("Failed to receive data");
     }
     
     // Clean up
     client.disconnect();
-    std::cout << "Disconnected from server" << std::endl;
+    logger.info("Disconnected from server");
 
     return 0;
 }
