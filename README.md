@@ -9,7 +9,7 @@ $ docker build -t my-server .
 ```bash
 # Pattern:
 # docker run -d -p 3500:3500 --name [container-name] [image-name]
-docker run -d -p 3500:3500 --name my-server      my-server
+docker run -d -p 3500:3500 --name my-server my-server
 ```
 - The -d flag (short for --detach) runs the container in the background.
 - The -p flag (short for --publish) creates a port mapping between the host and the container.
@@ -71,3 +71,7 @@ This gives you a bash shell inside the running container. You can then run comma
 ```
 Exit the container shell with `exit`.
 
+8. To remove a container the command
+```bash
+$ docker rm my-server
+```
