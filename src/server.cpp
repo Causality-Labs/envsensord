@@ -1,10 +1,11 @@
 #include <iostream>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
-
+#include "bme280.hpp"
 
 int main (void)
 {
+#if 0
     Server server;
     StdLogger logger("HW_Server");
     int ret{};
@@ -50,7 +51,18 @@ int main (void)
         logger.info("Response sent to client");
         close(client_fd);
     }
+#endif
 
+    StdLogger logger("HW_Server");
+    int ret{};
 
+    BME280 bme280;
+    ret = bme280.init();
+    if (ret != 0) {
+        logger.error("Was not able to initialize bme280 sensor.");
+        return -1;
+    }
+
+    logger.info("Initailized bme280 sensor.");
     return 0;
 }

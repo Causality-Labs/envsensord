@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++
+CXX = arm-linux-gnueabihf-g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -Iinc
 LDFLAGS = 
 
@@ -11,11 +11,13 @@ BIN_DIR = bin
 
 # Source files
 LIB_SRC = $(SRC_DIR)/my_socket_lib.cpp
+BME280_SRC = $(SRC_DIR)/bme280.cpp
 CLIENT_SRC = $(SRC_DIR)/client.cpp
 SERVER_SRC = $(SRC_DIR)/server.cpp
 
 # Object files
 LIB_OBJ = $(OBJ_DIR)/my_socket_lib.o
+BME280_OBJ = $(OBJ_DIR)/bme280.o
 CLIENT_OBJ = $(OBJ_DIR)/client.o
 SERVER_OBJ = $(OBJ_DIR)/server.o
 
@@ -41,11 +43,15 @@ $(CLIENT_BIN): $(CLIENT_OBJ) $(LIB_OBJ) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Build server executable
-$(SERVER_BIN): $(SERVER_OBJ) $(LIB_OBJ) | $(BIN_DIR)
+$(SERVER_BIN): $(SERVER_OBJ) $(BME280_OBJ) $(LIB_OBJ) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile library object file
 $(LIB_OBJ): $(LIB_SRC) $(INC_DIR)/my_socket_lib.hpp | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile BME280 object file
+$(BME280_OBJ): $(BME280_SRC) $(INC_DIR)/bme280.hpp $(INC_DIR)/logger.hpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Compile client object file

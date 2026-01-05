@@ -1,77 +1,51 @@
-# A Quick Docker Tutorial
+# Environmental Sensor Server
 
-Build the container
-``` bash
-$ docker build -t my-server .
-```
+Repository for an environmental sensor daemon that exposes temperature, pressure, and humidity data via a TCP/IP connection.
 
-Run the container in the background 
+Tested on Debian GNU/Linux 13 (trixie) on a BeagleBone Black.
+## Docker
+
+we use docker for creating a consistent development enviroment.
+
+To build the container:
 ```bash
-# Pattern:
-# docker run -d -p 3500:3500 --name [container-name] [image-name]
-$ docker run -d -p 3500:3500 --name my-server my-server
+$ docker build -t bbb-cross .
 ```
-- The -d flag (short for --detach) runs the container in the background.
-- The -p flag (short for --publish) creates a port mapping between the host and the container.
 
-You can verify your container is running with the following command:
+To enter the container for developement run the command:
 ```bash
-$ docker ps
-CONTAINER ID   IMAGE       COMMAND          CREATED         STATUS         PORTS                                         NAMES
-0d4bfd75ba8e   my-server   "./bin/server"   3 seconds ago   Up 3 seconds   0.0.0.0:3500->3500/tcp, [::]:3500->3500/tcp   my-server
+$ docker run --rm -it --network=host -v $(pwd):/build bbb-cross /bin/bash
 ```
 
-Open a terminal and observe some logs. These logs are what the running program
-prints to stdout and stderr.
+Where:
+- `--rm` removes the container when you exit
+- `-it` provides an interactive terminal
+- `--network=host` uses your host machine's network (for hostname resolution)
+- `-v $(pwd):/build` mounts your current directory to `/build` in the container
+- `bbb-cross` is the image name
+- `/bin/bash` starts a bash shell
+
+To exit the contianer:
 ```bash
-docker logs -f my-server
+$ exit
 ```
 
-Because you mapped port 3500 of the container to port 3500 of our host, we can use clients on the host to send data to the server running in the container.
-Open a new terminal and run one of the client programs and observe the output:
+Now you have a working container for cross compiling the application.
+## Device Tree
+Compile the DTS:
 ```bash
-$ ./bin/client
-[HW_Client] [INFO] Connecting to server...
-[HW_Client] [INFO] Connected to server!
-[HW_Client] [INFO] Sending: Hello from C++ client!
-[HW_Client] [INFO] Server response: Hello from C++ client!
-[HW_Client] [INFO] Disconnected from server
-
-# In your Docker container you will see the following logs too:
-$ docker logs -f my-server
-[HW_Server] [INFO] Server listening on port 3500...
-[HW_Server] [INFO] Client connected
-[HW_Server] [INFO] Received: Hello from C++ client!
-[HW_Server] [INFO] Response sent to client
+$ dtc -O dtb -o bin/bme280-overlay.dtbo bme280-overlay.dts
 ```
 
-This command stops the container
-```bash
-docker stop my-server
+Copy the compiled overlay to `/lib/firmware`, then add it to `/boot/uEnv.txt` so it is loaded during boot.
+```
+### Additional custom capes
+uboot_overlay_addr4=/lib/firmware/bme280-overlay.dtbo
 ```
 
-You can also enter the container via interactive mode and run the test script manually:
-```bash
-# Start the container if it's not running already:
-$ docker start my-server
-
-# Enter a shell
-$ docker exec -it my-server /bin/bash
-
-# Check running processes in container:
-root@799f684fc374:/app# ps aux
-USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-root           1  0.0  0.0   6368  3584 ?        Ss   20:01   0:00 ./bin/server
-root           7  0.0  0.0   4588  3968 pts/0    Ss   20:02   0:00 /bin/bash
-root          18  0.0  0.0   7888  4096 pts/0    R+   20:03   0:00 ps aux
+Also ensure you enable U-Boot overlays:
 ```
-This gives you a bash shell inside the running container. You can then run commands like:
-```bash
-./test_server.sh
+enable_uboot_overlays=1
 ```
-Exit the container shell with `exit`.
-
-To remove a container, use the command:
-```bash
-$ docker rm my-server
-```
+## Docker
+For cro

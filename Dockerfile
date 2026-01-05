@@ -1,27 +1,14 @@
-FROM ubuntu:24.04
+# Cross-compile for BeagleBone Black (ARMv7)
+FROM debian:trixie-slim
 
-# Install dependencies
-RUN apt-get -y update && \
-    apt-get install -y --no-install-recommends \
-    python3 \
+# Install cross-compilation toolchain
+RUN apt-get update && apt-get install -y \
+    g++-arm-linux-gnueabihf \
     make \
-    g++
+    openssh-client \
+    device-tree-compiler \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Set working directory
+WORKDIR /build
 
-# Copy specific files
-COPY Makefile /app/
-COPY client.py /app/
-COPY test_server.sh /app/
-
-# Copy specific directories
-COPY src/ /app/src/
-COPY inc/ /app/inc/
-
-RUN chmod +x /app/test_server.sh
-RUN chmod +x /app/client.py
-
-RUN make clean && make all
-
-# Run the server (not the test script)
-CMD ["./bin/server"]
