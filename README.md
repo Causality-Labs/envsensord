@@ -47,5 +47,24 @@ Also ensure you enable U-Boot overlays:
 ```
 enable_uboot_overlays=1
 ```
-## Docker
-For cro
+
+## Testing and deploying
+
+#### Server
+
+Copy the compiled server code to your target
+```bash
+$ scp ...
+```
+
+Excute the program as a background process
+```bash
+$ ./server &
+```
+
+You can check the logs using this command 
+```bash
+$ journalctl -t BME280
+```
+
+#### Client

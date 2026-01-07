@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
 #include "bme280.hpp"
@@ -63,6 +64,26 @@ int main (void)
         return -1;
     }
 
-    logger.info("Initailized bme280 sensor.");
+    logger.info("Initialized bme280 sensor.");
+
+    // Test loop - read sensor data every 2 seconds
+    while (true)
+    {
+        SensorData data;
+
+        ret = bme280.readSensorData(data);
+
+        if (ret == 0) {
+            logger.info("Temperature: " + std::to_string(data.temperature) + " C");
+            logger.info("Pressure: " + std::to_string(data.pressure) + " hPa");
+            logger.info("Humidity: " + std::to_string(data.humidity) + " %");
+        }
+        else {
+            logger.error("Failed to read sensor data");
+        }
+
+        sleep(2);
+    }
+
     return 0;
 }

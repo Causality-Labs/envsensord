@@ -15,14 +15,14 @@ public:
     ~BME280();
 
     int init();
-    bool readSensorData(SensorData& data);
-    float readTemperature();
-    float readPressure();
-    float readHumidity();
+    int readSensorData(SensorData& data);
+    int readTemperature(float& temp);
+    int readPressure(float& press);
+    int readHumidity(float& hum);
 
 private:
     std::string device_path;
-    float readFloat(const std::string& attr_name);
+    int readFloat(const std::string& attr_name, float& value);
 };
 
 #endif // BME280_HPP
