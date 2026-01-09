@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = arm-linux-gnueabihf-g++
+CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -Iinc
 LDFLAGS = 
 
