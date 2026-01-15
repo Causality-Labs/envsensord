@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = g++
+CXX = arm-linux-gnueabihf-g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -Iinc
 LDFLAGS = 
 
@@ -14,12 +14,14 @@ LIB_SRC = $(SRC_DIR)/my_socket_lib.cpp
 BME280_SRC = $(SRC_DIR)/bme280.cpp
 CLIENT_SRC = $(SRC_DIR)/client.cpp
 SERVER_SRC = $(SRC_DIR)/server.cpp
+SSNP_SRC   = $(SRC_DIR)/SSNP.cpp
 
 # Object files
 LIB_OBJ = $(OBJ_DIR)/my_socket_lib.o
 BME280_OBJ = $(OBJ_DIR)/bme280.o
 CLIENT_OBJ = $(OBJ_DIR)/client.o
 SERVER_OBJ = $(OBJ_DIR)/server.o
+SSNP_OBJ   = $(SRC_DIR)/SSNP.o
 
 # Executables
 CLIENT_BIN = $(BIN_DIR)/client
