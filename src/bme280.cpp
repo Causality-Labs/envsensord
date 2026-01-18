@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sys/stat.h>
 
+using namespace bme280;
+
 SysLogger logger("BME280");
 
 BME280::BME280()

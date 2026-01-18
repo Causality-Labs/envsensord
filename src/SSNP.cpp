@@ -3,7 +3,9 @@
 #include "logger.hpp"
 #include <sstream>
 #include <iomanip>
+#include <ctime>
 
+using namespace ssnp;
 SysLogger protocol_logger("SsnpProtocol");
 
 Ssnp::Ssnp()
@@ -12,9 +14,38 @@ Ssnp::Ssnp()
 
 Ssnp::~Ssnp() {}
 
+void Ssnp::construct_header(std::time_t timestamp, std::stringstream& header)
+{
+    bool first = true;
+    
+    if (req_type.temp_req) {
+        header << "TEMP";
+        first = false;
+    }
+    
+    if (req_type.press_req) {
+        if (!first) header << ",";
+        header << "PRESS";
+        first = false;
+    }
+    
+    if (req_type.hum_req) {
+        if (!first) header << ",";
+        header << "HUMID";
+    }
+    
+    header << ";" << timestamp;
+    return;
+}
+
 // Client Request: "TEMP,PRESS,HUMID;"
 int Ssnp::parseRequest(const std::string& request)
 {
+    // Reset request flags for new request
+    req_type.temp_req = false;
+    req_type.press_req = false;
+    req_type.hum_req = false;
+    req_type.invalid_req = false;
 
     if (request.empty() == true || request.back() != ';') {
         req_type.invalid_req = true;
@@ -71,9 +102,26 @@ int Ssnp::parseRequest(const std::string& request)
     return 0;
 }
 
-std::string Ssnp::buildResponse(const SensorData& data)
+void Ssnp::buildResponse(const bme280::SensorData& data, std::string& response)
 {
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2);
 
+    // Build header with requested fields and timestamp
+    construct_header(data.timestamp, ss);
+
+    // Add sensor data values in same order
+    if (req_type.temp_req)
+        ss << "," << data.temperature << "C";
+
+    if (req_type.press_req)
+        ss << "," << data.pressure << "hPa";
+
+    if (req_type.hum_req)
+        ss << "," << data.humidity << "%";
+
+    response = ss.str();
+    return;
 }
 
 
@@ -82,7 +130,7 @@ std::string Ssnp::buildRequest()
 
 }
 
-bool Ssnp::parseResponse(const std::string& response, SensorData& data)
+bool Ssnp::parseResponse(const std::string& response, bme280::SensorData& data)
 {
 
 }

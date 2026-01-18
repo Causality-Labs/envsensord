@@ -17,8 +17,8 @@ def main():
         client_socket.connect((HOST, PORT))
         print("Connected to server!")
         
-        # Send message to server
-        message = "Hello from Python client!"
+        # Send sensor request to server
+        message = "TEMP,HUMID,PRESS;"
         print(f"Sending: {message}")
         client_socket.sendall(message.encode('utf-8'))
         
