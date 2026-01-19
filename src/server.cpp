@@ -2,74 +2,79 @@
 #include <unistd.h>
 #include <chrono>
 #include <ctime>
+#include <thread>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
 #include "bme280.hpp"
 #include "SSNP.hpp"
+#include "ThreadPool.hpp"
 
-int getSensorData(ssnp::SsnpRequestType& request, bme280::BME280& sensor, bme280::SensorData& data);
+StdLogger stdlogger("HW_Server");
+BME280::BME280 bme280;
+Server server;
 
+
+int getSensorData(ssnp::SsnpRequestType& request, BME280::BME280& sensor, BME280::SensorData& data);
+
+void handleClient(int client_fd);
 
 int main (void)
 {
-
-    StdLogger logger("HW_Server");
-    bme280::BME280 bme280;
-    Server server;
-    ssnp::Ssnp Parser;
-    int client_fd{};
     int ret{};
 
     ret = bme280.init();
     if (ret != 0) {
-        logger.error("Was not able to initialize bme280 sensor.");
+        stdlogger.error("Was not able to initialize bme280 sensor.");
         return -1;
     }
 
-    logger.info("Initialized bme280 sensor.");
+    stdlogger.info("Initialized bme280 sensor.");
 
     ret = server.connect_to_port(3500, 25);
     if (ret < 0) {
-        logger.error("Failed to start server");
+        stdlogger.error("Failed to start server");
         return 1;
     }
 
-    logger.info("Server listening on port 3500...");
+    stdlogger.info("Server listening on port 3500...");
 
+    ThreadPool thread_pool(4, handleClient);
 
     while (1)
     {
-        client_fd = server.wait_for_connection();
+        int client_fd = server.wait_for_connection();
         if (client_fd <= 0) {
-            logger.error("Failed to connect to a client");
+            stdlogger.error("Failed to connect to a client");
             continue;
         }
 
-        logger.info("Client connected");
+        stdlogger.info("Client connected");
+        // Put client_fd in ThreadPool task queue.
 
+        #if 0
         std::string client_request{};
         ret = server.receive_request(client_fd, client_request);
 
         if (ret < 0) {
-            logger.error("Failed to recieve data from client.");
+            stdlogger.error("Failed to recieve data from client.");
             close(client_fd);
             continue;
         }
 
-        logger.info("Client Request: " + client_request);
+        stdlogger.info("Client Request: " + client_request);
 
         // Parse data recieved
         ret = Parser.parseRequest(client_request);
         if (ret < 0 || Parser.req_type.invalid_req == true) {
-            logger.error("Invalid Client Request");
+            stdlogger.error("Invalid Client Request");
             close(client_fd);
             continue;
         }
 
-        bme280::SensorData sensor_data;
+        BME280::SensorData sensor_data;
         ret = getSensorData(Parser.req_type, bme280, sensor_data);
         if (ret != 0) {
-            logger.error("Failed to read sensor data");
+            stdlogger.error("Failed to read sensor data");
             close(client_fd);
             continue;
         }
@@ -79,19 +84,20 @@ int main (void)
 
         ret = server.send_data(client_fd, client_response);
         if (ret == -1) {
-            logger.error("Failed to send data to server");
+            stdlogger.error("Failed to send data to server");
             close(client_fd);
             continue;
         }
 
-        logger.info("Response sent to client");
+        stdlogger.info("Response sent to client");
         close(client_fd);
+        #endif
     }
 
     return 0;
 }
 
-int getSensorData(ssnp::SsnpRequestType& request, bme280::BME280& sensor, bme280::SensorData& data)
+int getSensorData(ssnp::SsnpRequestType& request, BME280::BME280& sensor, BME280::SensorData& data)
 {
     int ret{};
 
@@ -120,4 +126,55 @@ int getSensorData(ssnp::SsnpRequestType& request, bme280::BME280& sensor, bme280
     data.timestamp = std::chrono::system_clock::to_time_t(now);
 
     return 0;
+}
+
+void handleClient(int client_fd)
+{
+
+    ssnp::Ssnp Parser;
+    int ret;
+
+    while (true)
+    {
+        // Recieve task data (client_fd,)
+        std::string client_request{};
+        ret = server.receive_request(client_fd, client_request);
+
+        if (ret < 0) {
+            stdlogger.error("Failed to recieve data from client.");
+            close(client_fd);
+            continue;
+        }
+
+        stdlogger.info("Client Request: " + client_request);
+
+        // Parse data recieved
+        ret = Parser.parseRequest(client_request);
+        if (ret < 0 || Parser.req_type.invalid_req == true) {
+            stdlogger.error("Invalid Client Request");
+            close(client_fd);
+            continue;
+        }
+
+        BME280::SensorData sensor_data;
+        ret = getSensorData(Parser.req_type, bme280, sensor_data);
+        if (ret != 0) {
+            stdlogger.error("Failed to read sensor data");
+            close(client_fd);
+            continue;
+        }
+
+        std::string client_response{};
+        Parser.buildResponse(sensor_data, client_response);
+
+        ret = server.send_data(client_fd, client_response);
+        if (ret == -1) {
+            stdlogger.error("Failed to send data to server");
+            close(client_fd);
+            continue;
+        }
+
+        stdlogger.info("Response sent to client");
+        close(client_fd);
+    }
 }

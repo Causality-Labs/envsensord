@@ -5,8 +5,9 @@
 #include <cstdint>
 #include <chrono>
 #include <ctime>
+#include <mutex>
 
-namespace bme280 {
+namespace BME280 {
 
 struct SensorData {
     float temperature;  // degrees Celsius
@@ -21,13 +22,13 @@ public:
     ~BME280();
 
     int init();
-    int readSensorData(SensorData& data);
     int readTemperature(float& temp);
     int readPressure(float& press);
     int readHumidity(float& hum);
 
 private:
     std::string device_path;
+    std::mutex sensorMutex; 
     int readFloat(const std::string& attr_name, float& value);
 };
 

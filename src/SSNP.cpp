@@ -102,7 +102,7 @@ int Ssnp::parseRequest(const std::string& request)
     return 0;
 }
 
-void Ssnp::buildResponse(const bme280::SensorData& data, std::string& response)
+void Ssnp::buildResponse(const BME280::SensorData& data, std::string& response)
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2);
@@ -130,7 +130,7 @@ std::string Ssnp::buildRequest()
 
 }
 
-bool Ssnp::parseResponse(const std::string& response, bme280::SensorData& data)
+bool Ssnp::parseResponse(const std::string& response, BME280::SensorData& data)
 {
 
 }

@@ -35,11 +35,11 @@ public:
 
     // Server-side methods
     int parseRequest(const std::string& request);
-    void buildResponse(const bme280::SensorData& data, std::string& response);
+    void buildResponse(const BME280::SensorData& data, std::string& response);
 
     // Client-side methods
     std::string buildRequest();
-    bool parseResponse(const std::string& response, bme280::SensorData& data);
+    bool parseResponse(const std::string& response, BME280::SensorData& data);
 
 private:
     void construct_header(std::time_t timestamp, std::stringstream& header);

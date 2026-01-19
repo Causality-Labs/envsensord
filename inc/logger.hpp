@@ -6,7 +6,10 @@
 #include <iostream>
 #include <chrono>
 #include <iomanip>
+#include <mutex>
 
+
+// Thread safe.
 class SysLogger {
     private:
         std::string logger_name;
@@ -33,6 +36,7 @@ class SysLogger {
 class StdLogger {
     private:
         std::string logger_name;
+        std::mutex logMutex;
 
     public:
         StdLogger(const std::string& name) : logger_name(name) {
@@ -42,10 +46,12 @@ class StdLogger {
         }
         
         void info(const std::string& message) {
+            std::lock_guard<std::mutex> lock(logMutex); 
             std::cout << "[" << logger_name << "] [INFO] " << message << std::endl;
         }
         
         void error(const std::string& message) {
+            std::lock_guard<std::mutex> lock(logMutex); 
             std::cerr << "[" << logger_name << "] [ERROR] " << message << std::endl;
         }
 };

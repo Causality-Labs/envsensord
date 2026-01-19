@@ -4,17 +4,15 @@
 #include <iostream>
 #include <sys/stat.h>
 
-using namespace bme280;
+SysLogger syslogger("BME280");
 
-SysLogger logger("BME280");
-
-BME280::BME280()
+BME280::BME280::BME280()
 : device_path("/sys/bus/iio/devices/iio:device") {
 }
 
-BME280::~BME280() {}
+BME280::BME280::~BME280() {}
 
-int BME280::init()
+int BME280::BME280::init()
 {
     for (int i = 0; i < 10; i++)
     {
@@ -34,61 +32,33 @@ int BME280::init()
 
         device_path = test_path;
 
-        logger.error("Found device");
+        syslogger.error("Found device");
         return 0;
     }
 
-    logger.error("Could not find device");
+    syslogger.error("Could not find device");
     return -1;
 }
 
-int BME280::readFloat(const std::string& attr_name, float& value)
+int BME280::BME280::readFloat(const std::string& attr_name, float& value)
 {
     std::string file_path = device_path + "/" + attr_name;
     std::ifstream file(file_path);
     if (!file.is_open()) {
-        logger.error("Failed to open: " + file_path);
+        syslogger.error("Failed to open: " + file_path);
         return -1;
     }
     
     file >> value;
-    logger.info("Read " + attr_name + ": " + std::to_string(value));
+    syslogger.info("Read " + attr_name + ": " + std::to_string(value));
     return 0;
 }
 
-int BME280::readSensorData(SensorData& data)
-{
-    float temp_raw;
-    float press_raw;
-    float hum_raw;
-
-    if (readFloat("in_temp_input", temp_raw) != 0) {
-        logger.error("Failed to read temperature");
-        return -1;
-    }
-
-    if (readFloat("in_pressure_input", press_raw) != 0) {
-        logger.error("Failed to read pressure");
-        return -1;
-    }
-
-    if (readFloat("in_humidityrelative_input", hum_raw) != 0) {
-        logger.error("Failed to read humidity");
-        return -1;
-    }
-
-    data.temperature = temp_raw / 1000.0f;  // millidegrees to Celsius
-    data.pressure = press_raw / 10.0f;       // kPa to hPa
-    data.humidity = hum_raw / 1000.0f;       // milli-percent to percent
-
-    return 0;
-}
-
-int BME280::readTemperature(float& temp)
+int BME280::BME280::readTemperature(float& temp)
 {
     float temp_raw;
     if (readFloat("in_temp_input", temp_raw) != 0) {
-        logger.error("Failed to read temperature");
+        syslogger.error("Failed to read temperature");
         return -1;
     }
 
@@ -96,11 +66,11 @@ int BME280::readTemperature(float& temp)
     return 0;
 }
 
-int BME280::readPressure(float& press)
+int BME280::BME280::readPressure(float& press)
 {
     float press_raw;
     if (readFloat("in_pressure_input", press_raw) != 0) {
-        logger.error("Failed to read pressure");
+        syslogger.error("Failed to read pressure");
         return -1;
     }
 
@@ -108,11 +78,11 @@ int BME280::readPressure(float& press)
     return 0;
 }
 
-int BME280::readHumidity(float& hum)
+int BME280::BME280::readHumidity(float& hum)
 {
     float hum_raw;
     if (readFloat("in_humidityrelative_input", hum_raw) != 0) {
-        logger.error("Failed to read humidity");
+        syslogger.error("Failed to read humidity");
         return -1;
     }
 
