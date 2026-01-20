@@ -22,4 +22,4 @@ wait $c1 $c2 $c3
 # echo ""
 # echo "Stopping server..."
 # kill $SERVER_PID
-# echo "Done!"
+echo "Done!"
