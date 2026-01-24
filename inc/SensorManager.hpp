@@ -52,22 +52,17 @@ private:
     std::atomic<bool> running;
     int updateInterval;
     std::function<void(SensorType&, DataType&)> readFunction;
-    
+
     void updateLoop()
     {
-        while (running) {
+        while (running)
+        {
             DataType freshData;
-            
-            // Call user-provided read function
             readFunction(sensor, freshData);
-            
-            // Update cache under lock
             {
                 std::lock_guard<std::mutex> lock(dataMutex);
                 cachedData = freshData;
             }
-            
-            // Sleep for update interval
             std::this_thread::sleep_for(std::chrono::milliseconds(updateInterval));
         }
     }
