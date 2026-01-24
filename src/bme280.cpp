@@ -40,6 +40,32 @@ int BME280::BME280::init()
     return -1;
 }
 
+int BME280::BME280::init(const std::string& custom_path)
+{
+    device_path = custom_path;
+    
+    // Verify the path exists and is valid
+    std::string name_file = device_path + "/name";
+    std::ifstream name_stream(name_file);
+    
+    if (!name_stream.is_open()) {
+        syslogger.error("Could not open device at: " + device_path);
+        return -1;
+    }
+    
+    std::string device_name;
+    std::getline(name_stream, device_name);
+    name_stream.close();
+    
+    if (device_name.find("bme280") == std::string::npos) {
+        syslogger.error("Device is not bme280: " + device_name);
+        return -1;
+    }
+    
+    syslogger.info("Found device at: " + device_path);
+    return 0;
+}
+
 int BME280::BME280::readFloat(const std::string& attr_name, float& value)
 {
     std::string file_path = device_path + "/" + attr_name;

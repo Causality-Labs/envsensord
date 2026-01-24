@@ -11,11 +11,10 @@ template<typename SensorType, typename DataType>
 class SensorManager {
 public:
     SensorManager(SensorType& sensor, 
-                  std::function<void(SensorType&, DataType&)> readFunc,
-                  int updateIntervalMs = 1000)
+                  std::function<void(SensorType&, DataType&)> readFunc)
     : sensor(sensor),
       running(false),
-      updateInterval(updateIntervalMs),
+      updateInterval(1000),
       readFunction(readFunc)
     {}
 
@@ -38,6 +37,19 @@ public:
         }
     }
 
+    bool setInterval(int interval)
+    {
+        if (running == true)
+            return false;
+
+        if (interval <= 0)
+            return false;
+
+        updateInterval = interval;
+
+        return true;
+    }
+
     void getData(DataType& data)
     {
         std::lock_guard<std::mutex> lock(dataMutex);
@@ -46,7 +58,8 @@ public:
 
 private:
     SensorType& sensor;
-    DataType cachedData;  
+    DataType cachedData;
+    DataType freshData;
     std::mutex dataMutex;
     std::thread updateThread;
     std::atomic<bool> running;
@@ -57,7 +70,6 @@ private:
     {
         while (running)
         {
-            DataType freshData;
             readFunction(sensor, freshData);
             {
                 std::lock_guard<std::mutex> lock(dataMutex);

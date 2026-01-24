@@ -9,32 +9,61 @@
 #include "SSNP.hpp"
 #include "ThreadPool.hpp"
 #include "SensorManager.hpp"
-
-
-int getSensorData(ssnp::SsnpRequestType& request, BME280::BME280& sensor, BME280::SensorData& data);
-void handleClientCallback(int client_fd);
-void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data);
+#include "CommandLineParser.hpp"
 
 StdLogger stdlogger("HW_Server");
 BME280::BME280 bme280;
 Server server;
-SensorManager<BME280::BME280, BME280::SensorData> sensorMgr(bme280,
-                                                            readBME280DataCallback,
-                                                            5000);
 
-int main (void)
+int getSensorData(ssnp::SsnpRequestType& request, BME280::BME280& sensor, BME280::SensorData& data);
+void handleClientCallback(int client_fd);
+void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data);
+SensorManager<BME280::BME280, BME280::SensorData> sensorMgr(bme280,
+                                                            readBME280DataCallback);
+
+int main(int argc, char* argv[])
 {
+    CommandLineParser parser;
+    EnvServerConfig config;
     int ret{};
 
-    ret = bme280.init();
+    ret = parser.parse(argc, argv, config);
     if (ret != 0) {
-        stdlogger.error("Was not able to initialize bme280 sensor.");
+        parser.printUsage(argv[0]);
         return -1;
     }
 
+    if (config.showHelp == true) {
+        parser.printUsage(argv[0]);
+        return 0;
+    }
+    
+    if (config.showVersion == true) {
+        parser.printVersion();
+        return 0;
+    }
+
+    if (config.deviceName == "") {
+        ret = bme280.init();
+        if (ret != 0) {
+            stdlogger.error("Was not able to initialize bme280 sensor.");
+            return -1;
+        }
+    }
+
+    else {
+        ret = bme280.init(config.deviceName);
+        if (ret != 0) {
+            stdlogger.error("Was not able to initialize bme280 sensor.");
+            return -1;
+        }
+    }
+
+    sensorMgr.setInterval(config.sensorInterval);
+
     stdlogger.info("Initialized bme280 sensor.");
 
-    ret = server.connect_to_port(3500, 25);
+    ret = server.connect_to_port(config.port, 25);
     if (ret < 0) {
         stdlogger.error("Failed to start server");
         return 1;
@@ -42,7 +71,7 @@ int main (void)
 
     stdlogger.info("Server listening on port 3500...");
 
-    ThreadPool<int> thread_pool(4, handleClientCallback);
+    ThreadPool<int> thread_pool(config.numThreads, handleClientCallback);
     sensorMgr.start();
 
     while (1)

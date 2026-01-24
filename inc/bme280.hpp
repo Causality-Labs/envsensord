@@ -22,6 +22,7 @@ public:
     ~BME280();
 
     int init();
+    int init(const std::string& device_path);
     int readTemperature(float& temp);
     int readPressure(float& press);
     int readHumidity(float& hum);
