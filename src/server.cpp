@@ -23,7 +23,7 @@ SensorManager<BME280::BME280, BME280::SensorData> sensorMgr(bme280,
 
 int main(int argc, char* argv[])
 {
-    CommandLineParser parser;
+    ServerCommandLineParser parser;
     EnvServerConfig config;
     int ret{};
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 void handleClientCallback(int client_fd)
 {
 
-    ssnp::Ssnp Parser;
+    ssnp::SsnpServer SSNPParser;
     int ret;
 
     // Recieve task data (client_fd,)
@@ -108,8 +108,8 @@ void handleClientCallback(int client_fd)
     stdlogger.info("Client Request: " + client_request);
 
     // Parse data recieved
-    ret = Parser.parseRequest(client_request);
-    if (ret < 0 || Parser.req_type.invalid_req == true) {
+    ret = SSNPParser.parseRequest(client_request);
+    if (ret < 0 || SSNPParser.req_type.invalid_req == true) {
         stdlogger.error("Invalid Client Request");
         close(client_fd);
         return;
@@ -119,7 +119,7 @@ void handleClientCallback(int client_fd)
     sensorMgr.getData(sensor_data); 
 
     std::string client_response{};
-    Parser.buildResponse(sensor_data, client_response);
+    SSNPParser.buildResponse(sensor_data, client_response);
 
     ret = server.send_data(client_fd, client_response);
     if (ret == -1) {

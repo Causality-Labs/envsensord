@@ -29,7 +29,11 @@ function build_container {
 
 function run_container {
     echo "Starting Docker container..."
-    docker run --rm -it --network=host -v $(pwd):/build bbb-cross /bin/bash
+    # Set ARCH for cross-compilation by default
+    docker run --rm -it --network=host \
+        -v $(pwd):/build \
+        -e ARCH=arm-linux-gnueabihf- \
+        bbb-cross /bin/bash
 }
 
 # Main script

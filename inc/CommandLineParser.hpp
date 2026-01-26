@@ -2,6 +2,7 @@
 #define COMMANDLINEPARSER_HPP
 
 #include <string>
+#include "SSNP.hpp"
 
 struct EnvServerConfig {
     int port;
@@ -13,16 +14,37 @@ struct EnvServerConfig {
     bool showVersion;
 };
 
-class CommandLineParser
+struct EnvClientConfig {
+    std::string hostname;
+    int port;
+    ssnp::SsnpRequestType request;
+
+    bool showHelp;
+    bool showVersion;
+};
+
+class ServerCommandLineParser
 {
 public:
-    CommandLineParser();
+    ServerCommandLineParser();
     int parse(int argc, char* argv[], EnvServerConfig& config);
     void printUsage(const char* progName);
     void printVersion();
 
-    private:
+private:
     void printError(const std::string& error);
 };
 
-#endif
+class ClientCommandLineParser
+{
+public:
+    ClientCommandLineParser();
+    int parse(int argc, char* argv[], EnvClientConfig& config);
+    void printUsage(const char* progName);
+    void printVersion();
+
+private:
+    void printError(const std::string& error);
+};
+
+#endif // COMMANDLINEPARSER_HPP

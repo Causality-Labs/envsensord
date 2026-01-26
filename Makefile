@@ -1,5 +1,5 @@
 # Compiler and flags
-CXX = arm-linux-gnueabihf-g++
+CXX = $(ARCH)g++
 CXXFLAGS = -Wall -Wextra -std=c++17 -Iinc
 LDFLAGS = 
 
@@ -43,7 +43,7 @@ server: $(SERVER_BIN)
 client: $(CLIENT_BIN)
 
 # Build client executable
-$(CLIENT_BIN): $(CLIENT_OBJ) $(LIB_OBJ) | $(BIN_DIR)
+$(CLIENT_BIN): $(CLIENT_OBJ) $(LIB_OBJ) $(BME280_OBJ) $(SSNP_OBJ) $(CLP_OBJ) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Build server executable

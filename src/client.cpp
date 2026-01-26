@@ -2,44 +2,94 @@
 #include <string>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
+#include "bme280.hpp"
+#include "SSNP.hpp"
+#include "CommandLineParser.hpp"
 
-int main()
+int main(int argc, char* argv[])
 {
-    // Create client with server hostname and port
-    Client client("localhost");
     StdLogger logger("HW_Client");
+    ssnp::SsnpClient SSNPParser;
+    ClientCommandLineParser commandLineParser;
+    EnvClientConfig config;
+    BME280::SensorData dataPacket;
+    int ret;
+
+    ret = commandLineParser.parse(argc, argv, config);
+    if (ret != 0) {
+        commandLineParser.printUsage(argv[0]);
+        return -1;
+    }
+
+    if (config.showHelp == true) {
+        commandLineParser.printUsage(argv[0]);
+        return 0;
+    }
+    
+    if (config.showVersion == true) {
+        commandLineParser.printVersion();
+        return 0;
+    }
+
+    // Create client with configured hostname
+    Client client(config.hostname);
 
     // Connect to server
-    logger.info("Connecting to server...");
-    if (client.connect_to_server(3500) < 0) {
+    logger.info("Connecting to server at " + config.hostname + ":" + std::to_string(config.port));
+    if (client.connect_to_server(config.port) < 0) {
         logger.error("Failed to connect to server");
-        return 1;
+        return -1;
     }
     
     logger.info("Connected to server!");
-    
+
+    std::string request_msg;
+    // Build request message
+    ret = SSNPParser.buildRequest(config.request, request_msg);
+    if (ret != 0) {
+        logger.error("Failed to build request");
+        client.disconnect();
+        return -1;
+    }
+
     // Send message to server
-    std::string message = "Hello from C++ client!";
-    logger.info("Sending: " + message);
-    
-    if (client.send_data(message) < 0) {
+    if (client.send_data(request_msg) < 0) {
         logger.error("Failed to send data");
         client.disconnect();
-        return 1;
+        return -1;
     }
     
     // Receive response from server
     std::string response;
     int bytes = client.receive_data(response);
-    
-    if (bytes > 0) {
-        logger.info("Server response: " + response);
-    } else if (bytes == 0) {
-        logger.info("Server closed connection");
-    } else {
-        logger.error("Failed to receive data");
+    if (bytes <= 0) {
+        logger.error("Failed to recieve data");
+        client.disconnect();
+        return -1;
     }
+
+
+    logger.info("Recieved: " + response);
+
+    ret = SSNPParser.parseResponse(response, dataPacket);
+    if (ret != 0) {
+        logger.error("Invalid response");
+        client.disconnect();
+        return -1;
+    }
+
+    logger.info("Timestamp: " + SSNPParser.getReadableTS(dataPacket));
+
+    if (SSNPParser.has_temp() == true)
+        logger.info("Temperature: " + std::to_string(dataPacket.temperature) + "°C");
     
+    if (SSNPParser.has_press() == true)
+        logger.info("Pressure: " + std::to_string(dataPacket.pressure) + " hPa");
+    
+    if (SSNPParser.has_humid() == true)
+        logger.info("Humidity: " + std::to_string(dataPacket.humidity) + "%");
+
+
     // Clean up
     client.disconnect();
     logger.info("Disconnected from server");
