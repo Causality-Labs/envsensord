@@ -31,10 +31,8 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    // Create client with configured hostname
     Client client(config.hostname);
 
-    // Connect to server
     logger.info("Connecting to server at " + config.hostname + ":" + std::to_string(config.port));
     if (client.connect_to_server(config.port) < 0) {
         logger.error("Failed to connect to server");
@@ -44,7 +42,6 @@ int main(int argc, char* argv[])
     logger.info("Connected to server!");
 
     std::string request_msg;
-    // Build request message
     ret = SSNPParser.buildRequest(config.request, request_msg);
     if (ret != 0) {
         logger.error("Failed to build request");
@@ -52,14 +49,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // Send message to server
     if (client.send_data(request_msg) < 0) {
         logger.error("Failed to send data");
         client.disconnect();
         return -1;
     }
-    
-    // Receive response from server
+
     std::string response;
     int bytes = client.receive_data(response);
     if (bytes <= 0) {
@@ -89,8 +84,6 @@ int main(int argc, char* argv[])
     if (SSNPParser.has_humid() == true)
         logger.info("Humidity: " + std::to_string(dataPacket.humidity) + "%");
 
-
-    // Clean up
     client.disconnect();
     logger.info("Disconnected from server");
 
