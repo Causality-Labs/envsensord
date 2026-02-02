@@ -26,8 +26,8 @@ SSNP_OBJ   = $(OBJ_DIR)/SSNP.o
 CLP_OBJ    = $(OBJ_DIR)/CommandLineParser.o
 
 # Executables
-CLIENT_BIN = $(BIN_DIR)/client
-SERVER_BIN = $(BIN_DIR)/server
+CLIENT_BIN = $(BIN_DIR)/EnvClient-cli
+SERVER_BIN = $(BIN_DIR)/EnvSensord
 
 # Default target: build everything
 all: server client

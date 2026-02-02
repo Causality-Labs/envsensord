@@ -52,19 +52,14 @@ enable_uboot_overlays=1
 
 #### Server
 
-Copy the compiled server code to your target
-```bash
-$ scp ...
-```
-
 Excute the program as a background process
 ```bash
-$ ./server &
+$ ./EnvSensord &
 ```
 
 The server supports the following options:
 ```bash
-$ ./server [OPTIONS]
+$ ./EnvSensord [OPTIONS]
 ```
 
 **Options:**
@@ -77,8 +72,8 @@ $ ./server [OPTIONS]
 
 **Examples:**
 ```bash
-$ ./server --port 8080 --threads 8
-$ ./server -p 3500 -i 500
+$ ./EnvSensord --port 8080 --threads 8
+$ ./EnvSensord -p 3500 -i 500
 ```
 
 #### Client
@@ -91,7 +86,7 @@ The compiled client is built from [src/client.cpp](src/client.cpp) and provides 
 
 **Usage:**
 ```bash
-$ ./client [OPTIONS]
+$ ./EnvClient-cli [OPTIONS]
 ```
 
 **Options:**
@@ -106,11 +101,11 @@ $ ./client [OPTIONS]
 
 **Examples:**
 ```bash
-$ ./client                          # Request all values from localhost:3500
-$ ./client -t                       # Request only temperature
-$ ./client -t -u                    # Request temperature and humidity
-$ ./client -p 8080 -a               # Request all from port 8080
-$ ./client -H 192.168.1.100 -t      # Request temp from remote host
+$ ./EnvClient-cli                          # Request all values from localhost:3500
+$ ./EnvClient-cli -t                       # Request only temperature
+$ ./EnvClient-cli -t -u                    # Request temperature and humidity
+$ ./EnvClient-cli -p 8080 -a               # Request all from port 8080
+$ ./EnvClient-cli -H 192.168.1.100 -t      # Request temp from remote host
 ```
 
 ##### Python Client Script
