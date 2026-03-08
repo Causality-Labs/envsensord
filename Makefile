@@ -1,7 +1,6 @@
 # Compiler and flags
-CXX = $(ARCH)g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -Iinc
-LDFLAGS = 
+CXX ?= g++
+CXXFLAGS += -Wall -Wextra -std=c++17 -Iinc
 
 # Directories
 SRC_DIR = src
@@ -26,8 +25,8 @@ SSNP_OBJ   = $(OBJ_DIR)/SSNP.o
 CLP_OBJ    = $(OBJ_DIR)/CommandLineParser.o
 
 # Executables
-CLIENT_BIN = $(BIN_DIR)/EnvClient-cli
-SERVER_BIN = $(BIN_DIR)/EnvSensord
+CLIENT_BIN = $(BIN_DIR)/envsensor-cli
+SERVER_BIN = $(BIN_DIR)/envsensord
 
 # Default target: build everything
 all: server client

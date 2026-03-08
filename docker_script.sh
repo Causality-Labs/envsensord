@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Docker script for BeagleBone Black cross-compilation environment
+# Docker script for cross-compilation environment
 
 function show_help {
     echo "Usage: $0 [OPTION]"
@@ -16,8 +16,8 @@ function show_help {
 }
 
 function build_container {
-    echo "Building Docker container 'bbb-cross'..."
-    docker build -t bbb-cross .
+    echo "Building Docker container 'imx91-cross-build'..."
+    docker build -t imx91-cross-build .
     
     if [ $? -eq 0 ]; then
         echo "✓ Container built successfully"
@@ -29,11 +29,9 @@ function build_container {
 
 function run_container {
     echo "Starting Docker container..."
-    # Set ARCH for cross-compilation by default
     docker run --rm -it --network=host \
         -v $(pwd):/build \
-        -e ARCH=arm-linux-gnueabihf- \
-        bbb-cross /bin/bash
+        imx91-cross-build /bin/bash
 }
 
 # Main script

@@ -96,8 +96,7 @@ void ServerCommandLineParser::printUsage(const char* progName)
 
 void ServerCommandLineParser::printVersion()
 {
-    std::cout << "Environmental Sensor Server v1.0.0\n";
-    std::cout << "Built for BeagleBone Black with BME280 sensor\n";
+    std::cout << "envsensord v1.0.0\n";
 }
 
 void ServerCommandLineParser::printError(const std::string& error)

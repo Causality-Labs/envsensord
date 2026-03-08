@@ -2,50 +2,23 @@
 
 Repository for an environmental sensor daemon that exposes temperature, pressure, and humidity data via a TCP/IP connection.
 
-Tested on Debian GNU/Linux 13 (trixie) on a BeagleBone Black.
 ## Docker
 
 we use docker for creating a consistent development enviroment.
 
 To build the container:
 ```bash
-$ docker build -t bbb-cross .
+$ docker_script -b
 ```
 
 To enter the container for developement run the command:
 ```bash
-$ docker run --rm -it --network=host -v $(pwd):/build bbb-cross /bin/bash
+$ docker_script -r
 ```
-
-Where:
-- `--rm` removes the container when you exit
-- `-it` provides an interactive terminal
-- `--network=host` uses your host machine's network (for hostname resolution)
-- `-v $(pwd):/build` mounts your current directory to `/build` in the container
-- `bbb-cross` is the image name
-- `/bin/bash` starts a bash shell
 
 To exit the contianer:
 ```bash
 $ exit
-```
-
-Now you have a working container for cross compiling the application.
-## Device Tree
-Compile the DTS:
-```bash
-$ dtc -O dtb -o bin/bme280-overlay.dtbo bme280-overlay.dts
-```
-
-Copy the compiled overlay to `/lib/firmware`, then add it to `/boot/uEnv.txt` so it is loaded during boot.
-```
-### Additional custom capes
-uboot_overlay_addr4=/lib/firmware/bme280-overlay.dtbo
-```
-
-Also ensure you enable U-Boot overlays:
-```
-enable_uboot_overlays=1
 ```
 
 ## Testing and deploying
@@ -54,12 +27,12 @@ enable_uboot_overlays=1
 
 Excute the program as a background process
 ```bash
-$ ./EnvSensord &
+$ ./envsensord &
 ```
 
 The server supports the following options:
 ```bash
-$ ./EnvSensord [OPTIONS]
+$ ./envsensord [OPTIONS]
 ```
 
 **Options:**
@@ -72,8 +45,8 @@ $ ./EnvSensord [OPTIONS]
 
 **Examples:**
 ```bash
-$ ./EnvSensord --port 8080 --threads 8
-$ ./EnvSensord -p 3500 -i 500
+$ ./envsensord --port 8080 --threads 8
+$ ./envsensord -p 3500 -i 500
 ```
 
 #### Client
@@ -86,7 +59,7 @@ The compiled client is built from [src/client.cpp](src/client.cpp) and provides 
 
 **Usage:**
 ```bash
-$ ./EnvClient-cli [OPTIONS]
+$ ./envsensor-cli [OPTIONS]
 ```
 
 **Options:**
@@ -101,11 +74,11 @@ $ ./EnvClient-cli [OPTIONS]
 
 **Examples:**
 ```bash
-$ ./EnvClient-cli                          # Request all values from localhost:3500
-$ ./EnvClient-cli -t                       # Request only temperature
-$ ./EnvClient-cli -t -u                    # Request temperature and humidity
-$ ./EnvClient-cli -p 8080 -a               # Request all from port 8080
-$ ./EnvClient-cli -H 192.168.1.100 -t      # Request temp from remote host
+$ ./envsensor-cli                          # Request all values from localhost:3500
+$ ./envsensor-cli -t                       # Request only temperature
+$ ./envsensor-cli -t -u                    # Request temperature and humidity
+$ ./envsensor-cli -p 8080 -a               # Request all from port 8080
+$ ./envsensor-cli -H 192.168.1.100 -t      # Request temp from remote host
 ```
 
 ##### Python Client Script
