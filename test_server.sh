@@ -146,14 +146,17 @@ run_test() {
 total_failures=0
 
 if [ "$CLIENT_TYPE" = "cpp" ] || [ "$CLIENT_TYPE" = "both" ]; then
-    if [ ! -f "./client" ] && [ ! -f "./bin/client" ]; then
+    CLIENT_BIN=""
+    for candidate in ./envsensor-cli ./build/bin/envsensor-cli; do
+        [ -x "$candidate" ] && CLIENT_BIN="$candidate" && break
+    done
+
+    if [ -z "$CLIENT_BIN" ]; then
         echo -e "${RED}Error: C++ client not found. Skipping C++ test.${NC}"
-        echo -e "${YELLOW}Compile with 'make client' first.${NC}"
+        echo -e "${YELLOW}Build with 'cmake -S . -B build && cmake --build build' first.${NC}"
         echo ""
     else
-        CLIENT_BIN="./client"
-        [ -f "./bin/client" ] && CLIENT_BIN="./bin/client"
-        
+
         run_test "$CLIENT_BIN" "C++ Client"
         ((total_failures+=$?))
     fi

@@ -2,7 +2,6 @@
 .vscode/
 
 # Build artifacts
+build*/
 bin/
 obj/
-
-*.dtbo
