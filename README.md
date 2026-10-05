@@ -2,23 +2,31 @@
 
 Repository for an environmental sensor daemon that exposes temperature, pressure, and humidity data via a TCP/IP connection.
 
-## Docker
+## Building
 
-we use docker for creating a consistent development enviroment.
+The project uses CMake (3.16 or newer).
 
-To build the container:
+#### Native build
+
 ```bash
-$ docker_script -b
+$ cmake -S . -B build
+$ cmake --build build
 ```
 
-To enter the container for developement run the command:
+
+#### Cross-compiling
+
+Point CMake at your toolchain, either with a toolchain file:
+
 ```bash
-$ docker_script -r
+cmake -S . -B build-cross --toolchain <path/to/toolchain.cmake> # Set up
+cmake --build build-cross # build all
 ```
 
-To exit the contianer:
+Example:
 ```bash
-$ exit
+cmake -S . -B build-aarch64 --toolchain cmake/toolchain-aarch64-linux-gnu.cmake
+cmake --build build-aarch64
 ```
 
 ## Testing and deploying
