@@ -86,7 +86,7 @@ void ServerCommandLineParser::printUsage(const char* progName)
     std::cout << "  -p, --port PORT          Server port (default: 3500)\n";
     std::cout << "  -t, --threads NUM        Number of worker threads (default: 4)\n";
     std::cout << "  -i, --interval MS        Sensor update interval in milliseconds (default: 1000)\n";
-    std::cout << "  -d, --device NAME        Device name for logging (optional)\n";
+    std::cout << "  -d, --device PATH        I2C bus of the BME280 (default: /dev/i2c-1)\n";
     std::cout << "  -h, --help               Show this help message\n";
     std::cout << "  -v, --version            Show version information\n\n";
     std::cout << "Examples:\n";

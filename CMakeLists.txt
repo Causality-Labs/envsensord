@@ -22,7 +22,7 @@ find_package(Threads REQUIRED)
 # Code shared by the server and the client
 add_library(envsensor_common STATIC
     src/my_socket_lib.cpp
-    src/bme280.cpp
+    src/BME280.cpp
     src/SSNP.cpp
     src/CommandLineParser.cpp
     src/I2CBus.cpp

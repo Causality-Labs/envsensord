@@ -5,21 +5,19 @@
 #include <thread>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
-#include "bme280.hpp"
+#include "BME280.hpp"
 #include "SSNP.hpp"
 #include "ThreadPool.hpp"
 #include "SensorManager.hpp"
 #include "CommandLineParser.hpp"
 
+using BME280SensorManager = SensorManager<BME280::BME280, BME280::SensorData>;
+
 StdLogger stdlogger("HW_Server");
-BME280::BME280 bme280;
 Server server;
 
-int getSensorData(ssnp::SsnpRequestType& request, BME280::BME280& sensor, BME280::SensorData& data);
-void handleClientCallback(int client_fd);
+void handleClientCallback(int client_fd, BME280SensorManager& sensorMgr);
 void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data);
-SensorManager<BME280::BME280, BME280::SensorData> sensorMgr(bme280,
-                                                            readBME280DataCallback);
 
 int main(int argc, char* argv[])
 {
@@ -43,22 +41,17 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (config.deviceName == "") {
-        ret = bme280.init();
-        if (ret != 0) {
-            stdlogger.error("Was not able to initialize bme280 sensor.");
-            return -1;
-        }
+    const std::string busPath = config.deviceName.empty() ? BME280::BME280::kDefaultBusPath
+                                                          : config.deviceName;
+    BME280::BME280 bme280(busPath);
+
+    ret = bme280.init();
+    if (ret != 0) {
+        stdlogger.error("Was not able to initialize bme280 sensor on " + busPath + ".");
+        return -1;
     }
 
-    else {
-        ret = bme280.init(config.deviceName);
-        if (ret != 0) {
-            stdlogger.error("Was not able to initialize bme280 sensor.");
-            return -1;
-        }
-    }
-
+    BME280SensorManager sensorMgr(bme280, readBME280DataCallback);
     sensorMgr.setInterval(config.sensorInterval);
 
     stdlogger.info("Initialized bme280 sensor.");
@@ -71,7 +64,9 @@ int main(int argc, char* argv[])
 
     stdlogger.info("Server listening on port 3500...");
 
-    ThreadPool<int> thread_pool(config.numThreads, handleClientCallback);
+    ThreadPool<int> thread_pool(config.numThreads, [&sensorMgr](int client_fd) {
+        handleClientCallback(client_fd, sensorMgr);
+    });
     sensorMgr.start();
 
     while (1)
@@ -89,7 +84,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void handleClientCallback(int client_fd)
+void handleClientCallback(int client_fd, BME280SensorManager& sensorMgr)
 {
 
     ssnp::SsnpServer SSNPParser;
@@ -134,10 +129,11 @@ void handleClientCallback(int client_fd)
 
 void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data)
 {
-    sensor.readTemperature(data.temperature);
-    sensor.readPressure(data.pressure);
-    sensor.readHumidity(data.humidity);
-    data.timestamp = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    int ret = sensor.read(data);
+    if (ret != 0) {
+        stdlogger.error("Failed to read bme280 sensor.");
+        return;
+    }
 
-    return;
+    data.timestamp = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 }

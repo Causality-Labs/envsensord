@@ -2,7 +2,7 @@
 #include <string>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
-#include "bme280.hpp"
+#include "BME280.hpp"
 #include "SSNP.hpp"
 #include "CommandLineParser.hpp"
 

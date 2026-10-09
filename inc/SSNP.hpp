@@ -4,7 +4,7 @@
 
 #include <string>
 #include <cstdint>
-#include "bme280.hpp"
+#include "BME280.hpp"
 
 namespace ssnp {
 
