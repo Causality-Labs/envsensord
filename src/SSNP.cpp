@@ -1,5 +1,5 @@
 #include "SSNP.hpp"
-#include "bme280.hpp"  // For SensorData struct
+#include "BME280.hpp"  // For SensorData struct
 #include "logger.hpp"
 #include <sstream>
 #include <iomanip>
