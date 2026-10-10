@@ -9,8 +9,6 @@
 
 #include "I2CBus.hpp"
 
-namespace BME280 {
-
 struct SensorData {
     float temperature;  // degrees Celsius
     float pressure;     // hectopascals (hPa)
@@ -22,11 +20,11 @@ struct SensorData {
 // All public functions return 0 on success or -errno on failure.
 class BME280 {
 public:
-    static constexpr const char* kDefaultBusPath = "/dev/i2c-0";
-    static constexpr uint8_t kDefaultAddress = 0x76;  // 0x77 when SDO is tied high
+    static constexpr const char* DEFAULT_BUS_PATH = "/dev/i2c-2";
+    static constexpr uint8_t DEFAULT_ADDRESS = 0x76;  // 0x77 when SDO is tied high
 
-    explicit BME280(const std::string& busPath = kDefaultBusPath,
-                    uint8_t address = kDefaultAddress);
+    explicit BME280(const std::string& busPath = DEFAULT_BUS_PATH,
+                    uint8_t address = DEFAULT_ADDRESS);
     ~BME280();
 
     // Opens the bus, verifies the chip, loads calibration and starts measuring
@@ -95,7 +93,5 @@ private:
     int32_t m_tFine = 0;
     std::mutex m_mutex;
 };
-
-}
 
 #endif // BME280_HPP

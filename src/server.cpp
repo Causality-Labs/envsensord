@@ -1,8 +1,12 @@
 #include <iostream>
 #include <unistd.h>
+#include <cerrno>
 #include <chrono>
+#include <cstring>
 #include <ctime>
 #include <thread>
+#include <fcntl.h>
+#include <sys/file.h>
 #include "my_socket_lib.hpp"
 #include "logger.hpp"
 #include "BME280.hpp"
@@ -11,13 +15,31 @@
 #include "SensorManager.hpp"
 #include "CommandLineParser.hpp"
 
-using BME280SensorManager = SensorManager<BME280::BME280, BME280::SensorData>;
+using BME280SensorManager = SensorManager<BME280, SensorData>;
+
+constexpr const char* INSTANCE_LOCK_PATH = "/run/envsensord.lock";
 
 StdLogger stdlogger("HW_Server");
 Server server;
 
+static int acquireInstanceLock(const char* path)
+{
+    int fd = open(path, O_RDWR | O_CREAT | O_CLOEXEC, 0644);
+    if (fd < 0) {
+        return -errno;
+    }
+
+    if (flock(fd, LOCK_EX | LOCK_NB) < 0) {
+        int err = errno;
+        close(fd);
+        return -err;
+    }
+
+    return fd;
+}
+
 void handleClientCallback(int client_fd, BME280SensorManager& sensorMgr);
-void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data);
+void readBME280DataCallback(BME280& sensor, SensorData& data);
 
 int main(int argc, char* argv[])
 {
@@ -41,9 +63,24 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    const std::string busPath = config.deviceName.empty() ? BME280::BME280::kDefaultBusPath
-                                                          : config.deviceName;
-    BME280::BME280 bme280(busPath);
+    // Ensure there is only a single instance of the daemon running.
+    int lockFd = acquireInstanceLock(INSTANCE_LOCK_PATH);
+    if (lockFd < 0) {
+        if (lockFd == -EWOULDBLOCK) {
+            stdlogger.error("envsensord is already running.");
+        }
+        else {
+            stdlogger.error(std::string("Could not create lock file ") + INSTANCE_LOCK_PATH +
+                            ": " + std::strerror(-lockFd));
+        }
+        return -1;
+    }
+
+    std::string busPath = BME280::DEFAULT_BUS_PATH;
+    if (!config.deviceName.empty()) {
+        busPath = config.deviceName;
+    }
+    BME280 bme280(busPath);
 
     ret = bme280.init();
     if (ret != 0) {
@@ -110,7 +147,7 @@ void handleClientCallback(int client_fd, BME280SensorManager& sensorMgr)
         return;
     }
 
-    BME280::SensorData sensor_data;
+    SensorData sensor_data;
     sensorMgr.getData(sensor_data); 
 
     std::string client_response{};
@@ -127,7 +164,7 @@ void handleClientCallback(int client_fd, BME280SensorManager& sensorMgr)
     close(client_fd);
 }
 
-void readBME280DataCallback(BME280::BME280& sensor, BME280::SensorData& data)
+void readBME280DataCallback(BME280& sensor, SensorData& data)
 {
     int ret = sensor.read(data);
     if (ret != 0) {

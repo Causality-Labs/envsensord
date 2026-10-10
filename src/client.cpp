@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     ssnp::SsnpClient SSNPParser;
     ClientCommandLineParser commandLineParser;
     EnvClientConfig config;
-    BME280::SensorData dataPacket;
+    SensorData dataPacket;
     int ret;
 
     ret = commandLineParser.parse(argc, argv, config);

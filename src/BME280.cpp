@@ -12,52 +12,52 @@ namespace {
 SysLogger syslogger("BME280");
 
 // Register map (datasheet section 5.3)
-constexpr uint8_t kRegCalib00   = 0x88;  // 0x88..0xA1: T and P calibration, then H1
-constexpr uint8_t kRegChipId    = 0xD0;
-constexpr uint8_t kRegReset     = 0xE0;
-constexpr uint8_t kRegCalib26   = 0xE1;  // 0xE1..0xE7: H2..H6 calibration
-constexpr uint8_t kRegCtrlHum   = 0xF2;
-constexpr uint8_t kRegStatus    = 0xF3;
-constexpr uint8_t kRegCtrlMeas  = 0xF4;
-constexpr uint8_t kRegConfig    = 0xF5;
-constexpr uint8_t kRegData      = 0xF7;  // 0xF7..0xFE: press, temp, hum raw data
+constexpr uint8_t CALIB00_REG   = 0x88;  // 0x88..0xA1: T and P calibration, then H1
+constexpr uint8_t CHIP_ID_REG   = 0xD0;
+constexpr uint8_t RESET_REG     = 0xE0;
+constexpr uint8_t CALIB26_REG   = 0xE1;  // 0xE1..0xE7: H2..H6 calibration
+constexpr uint8_t CTRL_HUM_REG  = 0xF2;
+constexpr uint8_t STATUS_REG    = 0xF3;
+constexpr uint8_t CTRL_MEAS_REG = 0xF4;
+constexpr uint8_t CONFIG_REG    = 0xF5;
+constexpr uint8_t DATA_REG      = 0xF7;  // 0xF7..0xFE: press, temp, hum raw data
 
-constexpr uint8_t kChipId       = 0x60;
-constexpr uint8_t kResetCommand = 0xB6;
+constexpr uint8_t CHIP_ID       = 0x60;
+constexpr uint8_t RESET_COMMAND = 0xB6;
 
-constexpr size_t kCalib00Len    = 26;
-constexpr size_t kCalib26Len    = 7;
-constexpr size_t kDataLen       = 8;
+constexpr size_t CALIB00_LEN = 26;
+constexpr size_t CALIB26_LEN = 7;
+constexpr size_t DATA_LEN    = 8;
 
 // Status register: set while NVM calibration data is being copied to image registers
-constexpr uint8_t kStatusImUpdate = 0x01;
+constexpr uint8_t STATUS_IM_UPDATE = 0x01;
 
 // Settings (datasheet section 5.4).
 // Oversampling x1 for all three channels, IIR filter off, normal mode with
 // 125 ms standby. This gives a fresh sample roughly every 135 ms.
-constexpr uint8_t kOsrsX1        = 0x01;
-constexpr uint8_t kModeNormal    = 0x03;
-constexpr uint8_t kStandby125ms  = 0x02;
-constexpr uint8_t kFilterOff     = 0x00;
+constexpr uint8_t OSRS_X1       = 0x01;
+constexpr uint8_t MODE_NORMAL   = 0x03;
+constexpr uint8_t STANDBY_125MS = 0x02;
+constexpr uint8_t FILTER_OFF    = 0x00;
 
-constexpr uint8_t kCtrlHumValue  = kOsrsX1;
-constexpr uint8_t kCtrlMeasValue = (kOsrsX1 << 5) | (kOsrsX1 << 2) | kModeNormal;
-constexpr uint8_t kConfigValue   = (kStandby125ms << 5) | (kFilterOff << 2);
+constexpr uint8_t CTRL_HUM_VALUE  = OSRS_X1;
+constexpr uint8_t CTRL_MEAS_VALUE = (OSRS_X1 << 5) | (OSRS_X1 << 2) | MODE_NORMAL;
+constexpr uint8_t CONFIG_VALUE    = (STANDBY_125MS << 5) | (FILTER_OFF << 2);
 
 // Operating range of the sensor (datasheet section 1), used to clamp results the
 // same way Bosch's BME280_SensorAPI does
-constexpr int32_t  kTempMin      = -4000;            // -40.00 degC
-constexpr int32_t  kTempMax      = 8500;             //  85.00 degC
-constexpr uint32_t kPressMin     = 30000u * 256u;    //  300 hPa in Q24.8 Pa
-constexpr uint32_t kPressMax     = 110000u * 256u;   // 1100 hPa in Q24.8 Pa
+constexpr int32_t TEMP_MIN   = -4000;            // -40.00 degC
+constexpr int32_t TEMP_MAX   = 8500;             //  85.00 degC
+constexpr uint32_t PRESS_MIN = 30000u * 256u;    //  300 hPa in Q24.8 Pa
+constexpr uint32_t PRESS_MAX = 110000u * 256u;   // 1100 hPa in Q24.8 Pa
 
 // Soft reset: start-up time and how many times to poll for the NVM copy to finish
-constexpr auto kStartupDelay     = std::chrono::milliseconds(2);
-constexpr int kResetPollAttempts = 5;
+constexpr auto STARTUP_DELAY      = std::chrono::milliseconds(2);
+constexpr int RESET_POLL_ATTEMPTS = 5;
 
 // Raw values reported for a channel that has not been measured yet
-constexpr int32_t kSkippedTP     = 0x80000;
-constexpr int32_t kSkippedH      = 0x8000;
+constexpr int32_t SKIPPED_TP = 0x80000;
+constexpr int32_t SKIPPED_H  = 0x8000;
 
 uint16_t toU16(const uint8_t* p)
 {
@@ -71,19 +71,19 @@ int16_t toS16(const uint8_t* p)
 
 }
 
-BME280::BME280::BME280(const std::string& busPath, uint8_t address):
+BME280::BME280(const std::string& busPath, uint8_t address):
     m_bus(busPath),
     m_address(address)
 {
 
 }
 
-BME280::BME280::~BME280()
+BME280::~BME280()
 {
 
 }
 
-int BME280::BME280::init()
+int BME280::init()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_initialized = false;
@@ -127,13 +127,13 @@ int BME280::BME280::init()
     return 0;
 }
 
-int BME280::BME280::read(SensorData& data)
+int BME280::read(SensorData& data)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return readCompensated(data.temperature, data.pressure, data.humidity);
 }
 
-int BME280::BME280::readTemperature(float& temp)
+int BME280::readTemperature(float& temp)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     float press = 0.0f;
@@ -141,7 +141,7 @@ int BME280::BME280::readTemperature(float& temp)
     return readCompensated(temp, press, hum);
 }
 
-int BME280::BME280::readPressure(float& press)
+int BME280::readPressure(float& press)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     float temp = 0.0f;
@@ -149,7 +149,7 @@ int BME280::BME280::readPressure(float& press)
     return readCompensated(temp, press, hum);
 }
 
-int BME280::BME280::readHumidity(float& hum)
+int BME280::readHumidity(float& hum)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     float temp = 0.0f;
@@ -157,7 +157,7 @@ int BME280::BME280::readHumidity(float& hum)
     return readCompensated(temp, press, hum);
 }
 
-int BME280::BME280::readCompensated(float& temp, float& press, float& hum)
+int BME280::readCompensated(float& temp, float& press, float& hum)
 {
     if (!m_initialized)
     {
@@ -191,7 +191,7 @@ int BME280::BME280::readCompensated(float& temp, float& press, float& hum)
     return 0;
 }
 
-int BME280::BME280::readRegisters(uint8_t reg, std::span<uint8_t> out)
+int BME280::readRegisters(uint8_t reg, std::span<uint8_t> out)
 {
     I2CBus::i2c_msg_t messages[] =
     {
@@ -202,7 +202,7 @@ int BME280::BME280::readRegisters(uint8_t reg, std::span<uint8_t> out)
     return m_bus.transfer(messages);
 }
 
-int BME280::BME280::writeRegister(uint8_t reg, uint8_t value)
+int BME280::writeRegister(uint8_t reg, uint8_t value)
 {
     uint8_t buf[2] = {reg, value};
 
@@ -214,18 +214,18 @@ int BME280::BME280::writeRegister(uint8_t reg, uint8_t value)
     return m_bus.transfer(messages);
 }
 
-int BME280::BME280::checkChipId()
+int BME280::checkChipId()
 {
     uint8_t id = 0;
 
-    int ret = readRegisters(kRegChipId, {&id, 1});
+    int ret = readRegisters(CHIP_ID_REG, {&id, 1});
     if (ret < 0)
     {
         syslogger.error("Failed to read chip ID: " + std::string(std::strerror(-ret)));
         return ret;
     }
 
-    if (id != kChipId)
+    if (id != CHIP_ID)
     {
         syslogger.error("Unexpected chip ID " + std::to_string(id) + ", not a BME280");
         return -ENODEV;
@@ -234,27 +234,27 @@ int BME280::BME280::checkChipId()
     return 0;
 }
 
-int BME280::BME280::softReset()
+int BME280::softReset()
 {
-    int ret = writeRegister(kRegReset, kResetCommand);
+    int ret = writeRegister(RESET_REG, RESET_COMMAND);
     if (ret < 0)
     {
         return ret;
     }
 
     // Wait for start-up, then for the calibration data to be copied from NVM
-    for (int attempt = 0; attempt < kResetPollAttempts; ++attempt)
+    for (int attempt = 0; attempt < RESET_POLL_ATTEMPTS; ++attempt)
     {
-        std::this_thread::sleep_for(kStartupDelay);
+        std::this_thread::sleep_for(STARTUP_DELAY);
 
         uint8_t status = 0;
-        ret = readRegisters(kRegStatus, {&status, 1});
+        ret = readRegisters(STATUS_REG, {&status, 1});
         if (ret < 0)
         {
             return ret;
         }
 
-        if ((status & kStatusImUpdate) == 0)
+        if ((status & STATUS_IM_UPDATE) == 0)
         {
             return 0;
         }
@@ -263,18 +263,18 @@ int BME280::BME280::softReset()
     return -ETIMEDOUT;
 }
 
-int BME280::BME280::readCalibration()
+int BME280::readCalibration()
 {
-    uint8_t c0[kCalib00Len] = {};
-    uint8_t c1[kCalib26Len] = {};
+    uint8_t c0[CALIB00_LEN] = {};
+    uint8_t c1[CALIB26_LEN] = {};
 
-    int ret = readRegisters(kRegCalib00, c0);
+    int ret = readRegisters(CALIB00_REG, c0);
     if (ret < 0)
     {
         return ret;
     }
 
-    ret = readRegisters(kRegCalib26, c1);
+    ret = readRegisters(CALIB26_REG, c1);
     if (ret < 0)
     {
         return ret;
@@ -310,23 +310,23 @@ int BME280::BME280::readCalibration()
     return 0;
 }
 
-int BME280::BME280::configure()
+int BME280::configure()
 {
     // The sensor is in sleep mode after reset, so config can be written safely.
     // ctrl_hum only takes effect after the following write to ctrl_meas.
-    int ret = writeRegister(kRegCtrlHum, kCtrlHumValue);
+    int ret = writeRegister(CTRL_HUM_REG, CTRL_HUM_VALUE);
     if (ret < 0)
     {
         return ret;
     }
 
-    ret = writeRegister(kRegConfig, kConfigValue);
+    ret = writeRegister(CONFIG_REG, CONFIG_VALUE);
     if (ret < 0)
     {
         return ret;
     }
 
-    ret = writeRegister(kRegCtrlMeas, kCtrlMeasValue);
+    ret = writeRegister(CTRL_MEAS_REG, CTRL_MEAS_VALUE);
     if (ret < 0)
     {
         return ret;
@@ -337,12 +337,12 @@ int BME280::BME280::configure()
     return 0;
 }
 
-int BME280::BME280::readRawData(int32_t& adcT, int32_t& adcP, int32_t& adcH)
+int BME280::readRawData(int32_t& adcT, int32_t& adcP, int32_t& adcH)
 {
     // Burst read all data registers so the three values come from the same measurement
-    uint8_t d[kDataLen] = {};
+    uint8_t d[DATA_LEN] = {};
 
-    int ret = readRegisters(kRegData, d);
+    int ret = readRegisters(DATA_REG, d);
     if (ret < 0)
     {
         return ret;
@@ -352,7 +352,7 @@ int BME280::BME280::readRawData(int32_t& adcT, int32_t& adcP, int32_t& adcH)
     adcT = (static_cast<int32_t>(d[3]) << 12) | (static_cast<int32_t>(d[4]) << 4) | (d[5] >> 4);
     adcH = (static_cast<int32_t>(d[6]) << 8)  |  static_cast<int32_t>(d[7]);
 
-    if (adcT == kSkippedTP || adcP == kSkippedTP || adcH == kSkippedH)
+    if (adcT == SKIPPED_TP || adcP == SKIPPED_TP || adcH == SKIPPED_H)
     {
         return -EAGAIN;  // no measurement available yet
     }
@@ -365,7 +365,7 @@ int BME280::BME280::readRawData(int32_t& adcT, int32_t& adcP, int32_t& adcH)
 // of negative values, so the arithmetic matches the datasheet exactly. As in Bosch's
 // BME280_SensorAPI, results are clamped to the sensor's operating range.
 
-int32_t BME280::BME280::compensateTemperature(int32_t adcT)
+int32_t BME280::compensateTemperature(int32_t adcT)
 {
     const int32_t t1 = m_calib.digT1;
     const int32_t t2 = m_calib.digT2;
@@ -377,10 +377,10 @@ int32_t BME280::BME280::compensateTemperature(int32_t adcT)
     m_tFine = var1 + var2;
 
     int32_t temp = (m_tFine * 5 + 128) >> 8;
-    return std::clamp(temp, kTempMin, kTempMax);
+    return std::clamp(temp, TEMP_MIN, TEMP_MAX);
 }
 
-uint32_t BME280::BME280::compensatePressure(int32_t adcP)
+uint32_t BME280::compensatePressure(int32_t adcP)
 {
     int64_t var1 = static_cast<int64_t>(m_tFine) - 128000;
     int64_t var2 = var1 * var1 * m_calib.digP6;
@@ -400,10 +400,10 @@ uint32_t BME280::BME280::compensatePressure(int32_t adcP)
     var2 = (static_cast<int64_t>(m_calib.digP8) * p) >> 19;
     p = ((p + var1 + var2) >> 8) + (static_cast<int64_t>(m_calib.digP7) << 4);
 
-    return static_cast<uint32_t>(std::clamp<int64_t>(p, kPressMin, kPressMax));
+    return static_cast<uint32_t>(std::clamp<int64_t>(p, PRESS_MIN, PRESS_MAX));
 }
 
-uint32_t BME280::BME280::compensateHumidity(int32_t adcH)
+uint32_t BME280::compensateHumidity(int32_t adcH)
 {
     const int32_t h1 = m_calib.digH1;
     const int32_t h2 = m_calib.digH2;
