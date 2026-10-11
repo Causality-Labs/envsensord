@@ -11,6 +11,8 @@
 
 class BME280SensorManager {
 public:
+    static constexpr std::chrono::milliseconds MIN_UPDATE_INTERVAL{100};
+    static constexpr std::chrono::milliseconds MAX_UPDATE_INTERVAL{60000};
     static constexpr std::chrono::milliseconds DEFAULT_UPDATE_INTERVAL{100};
 
     explicit BME280SensorManager(BME280& sensor,

@@ -46,7 +46,7 @@ $ ./envsensord [OPTIONS]
 **Options:**
 - `-p, --port PORT` - Server port (default: 3500)
 - `-t, --threads NUM` - Number of worker threads (default: 4)
-- `-i, --interval MS` - Sensor update interval in milliseconds (default: 1000)
+- `-i, --interval MS` - Sensor update interval in milliseconds, 100–60000 (default: 1000)
 - `-d, --device PATH` - I2C bus the BME280 is connected to (default: /dev/i2c-1)
 - `-h, --help` - Show help message
 - `-v, --version` - Show version information

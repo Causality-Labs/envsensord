@@ -14,6 +14,11 @@ int BME280SensorManager::init()
         return -1;
     }
 
+    if (m_updateInterval < MIN_UPDATE_INTERVAL || m_updateInterval > MAX_UPDATE_INTERVAL)
+    {
+        return -1;
+    }
+
     if (m_sensor.init() != 0)
     {
         return -1;

@@ -1,5 +1,7 @@
 #include "CommandLineParser.hpp"
+#include "BME280SensorManager.hpp"
 #include <iostream>
+#include <string>
 #include <getopt.h>
 
 ServerCommandLineParser::ServerCommandLineParser() {}
@@ -48,8 +50,11 @@ int ServerCommandLineParser::parse(int argc, char* argv[], EnvServerConfig& conf
 
             case 'i':
                 config.sensorInterval = std::stoi(optarg);
-                if (config.sensorInterval <= 0) {
-                    printError("Sensor interval must be positive.");
+                if (config.sensorInterval < BME280SensorManager::MIN_UPDATE_INTERVAL.count() ||
+                    config.sensorInterval > BME280SensorManager::MAX_UPDATE_INTERVAL.count()) {
+                    printError("Sensor interval must be between " +
+                               std::to_string(BME280SensorManager::MIN_UPDATE_INTERVAL.count()) + " and " +
+                               std::to_string(BME280SensorManager::MAX_UPDATE_INTERVAL.count()) + " ms.");
                     return -1;
                 }
                 break;
@@ -85,7 +90,7 @@ void ServerCommandLineParser::printUsage(const char* progName)
     std::cout << "Options:\n";
     std::cout << "  -p, --port PORT          Server port (default: 3500)\n";
     std::cout << "  -t, --threads NUM        Number of worker threads (default: 4)\n";
-    std::cout << "  -i, --interval MS        Sensor update interval in milliseconds (default: 1000)\n";
+    std::cout << "  -i, --interval MS        Sensor update interval in milliseconds, 100-60000 (default: 1000)\n";
     std::cout << "  -d, --device PATH        I2C bus of the BME280 (default: /dev/i2c-1)\n";
     std::cout << "  -h, --help               Show this help message\n";
     std::cout << "  -v, --version            Show version information\n\n";
@@ -96,7 +101,7 @@ void ServerCommandLineParser::printUsage(const char* progName)
 
 void ServerCommandLineParser::printVersion()
 {
-    std::cout << "envsensord v1.0.0\n";
+    std::cout << "envsensord v" << PROJECT_VERSION << "\n";
 }
 
 void ServerCommandLineParser::printError(const std::string& error)
@@ -215,8 +220,7 @@ void ClientCommandLineParser::printUsage(const char* progName)
 
 void ClientCommandLineParser::printVersion()
 {
-    std::cout << "Environmental Sensor Client v1.0.0\n";
-    std::cout << "Built for BeagleBone Black with BME280 sensor\n";
+    std::cout << "Environmental Sensor Client v" << PROJECT_VERSION << "\n";
 }
 
 void ClientCommandLineParser::printError(const std::string& error)

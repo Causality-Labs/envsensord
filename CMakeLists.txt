@@ -30,6 +30,7 @@ add_library(envsensor_common STATIC
 )
 target_include_directories(envsensor_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 target_compile_options(envsensor_common PUBLIC -Wall -Wextra)
+target_compile_definitions(envsensor_common PUBLIC PROJECT_VERSION="${PROJECT_VERSION}")
 target_link_libraries(envsensor_common PUBLIC Threads::Threads)
 
 # Server daemon
