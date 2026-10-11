@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(EnvSensorServer
-    VERSION 1.0.0
+    VERSION 1.1.0
     DESCRIPTION "Environmental sensor daemon and client"
     LANGUAGES CXX
 )
