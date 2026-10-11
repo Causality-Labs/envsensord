@@ -26,6 +26,7 @@ add_library(envsensor_common STATIC
     src/SSNP.cpp
     src/CommandLineParser.cpp
     src/I2CBus.cpp
+    src/BME280SensorManager.cpp
 )
 target_include_directories(envsensor_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 target_compile_options(envsensor_common PUBLIC -Wall -Wextra)

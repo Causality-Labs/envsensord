@@ -35,7 +35,7 @@ public:
 
     // Server-side methods
     int parseRequest(const std::string& request);
-    void buildResponse(const SensorData& data, std::string& response);
+    void buildResponse(const BME280Data& data, std::string& response);
 
 private:
     void construct_header(std::time_t timestamp, std::stringstream& header);
@@ -48,11 +48,11 @@ public:
 
     // Client-side methods
     int buildRequest(const SsnpRequestType& request, std::string& request_str);
-    int parseResponse(const std::string& response, SensorData& data);
+    int parseResponse(const std::string& response, BME280Data& data);
     bool has_temp();
     bool has_press();
     bool has_humid();
-    std::string getReadableTS(SensorData& data);
+    std::string getReadableTS(BME280Data& data);
 
 private:
     SsnpRequestType outgoing_req;

@@ -1,5 +1,5 @@
 #include "SSNP.hpp"
-#include "BME280.hpp"  // For SensorData struct
+#include "BME280.hpp"  // For BME280Data struct
 #include "logger.hpp"
 #include <sstream>
 #include <iomanip>
@@ -102,7 +102,7 @@ int SsnpServer::parseRequest(const std::string& request)
     return 0;
 }
 
-void SsnpServer::buildResponse(const SensorData& data, std::string& response)
+void SsnpServer::buildResponse(const BME280Data& data, std::string& response)
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2);
@@ -202,7 +202,7 @@ bool SsnpClient::check_response()
 }
 
 
-int SsnpClient::parseResponse(const std::string& response, SensorData& data)
+int SsnpClient::parseResponse(const std::string& response, BME280Data& data)
 {
     if (response.empty() == true) {
         std::cout << "Payload empty";
@@ -276,7 +276,7 @@ bool SsnpClient::has_humid()
     return incoming_res.hum_req;
 }
 
-std::string SsnpClient::getReadableTS(SensorData& data)
+std::string SsnpClient::getReadableTS(BME280Data& data)
 {
     std::stringstream ss;
     std::time_t timestamp = data.timestamp;

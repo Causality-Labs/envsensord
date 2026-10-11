@@ -127,10 +127,18 @@ int BME280::init()
     return 0;
 }
 
-int BME280::read(SensorData& data)
+int BME280::read(BME280Data& data)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    return readCompensated(data.temperature, data.pressure, data.humidity);
+
+    int ret = readCompensated(data.temperature, data.pressure, data.humidity);
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    data.timestamp = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    return 0;
 }
 
 int BME280::readTemperature(float& temp)
